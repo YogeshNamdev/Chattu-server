@@ -6,6 +6,7 @@ const corsOptions = {
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
 const CHATTU_TOKEN = 'chattu-token'
