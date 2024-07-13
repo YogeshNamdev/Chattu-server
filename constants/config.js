@@ -4,7 +4,7 @@ const corsOptions = {
     'http://localhost:4173',
     process.env.CLIENT_URL,
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTION'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
   credentials: true,
 }
 
