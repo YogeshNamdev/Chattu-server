@@ -8,8 +8,6 @@ import { createServer } from 'http'
 import { v4 as uuid } from 'uuid'
 import cors from 'cors'
 import { v2 as cloudinary } from 'cloudinary'
-import { socketAuthenticator } from './middlewares/auth.js'
-import { corsOptions } from './constants/config.js'
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
@@ -21,6 +19,8 @@ import {
 } from './constants/events.js'
 import { getSockets } from './lib/helper.js'
 import { Message } from './models/message.js'
+import { corsOptions } from './constants/config.js'
+import { socketAuthenticator } from './middlewares/auth.js'
 
 import userRoute from './routes/user.js'
 import chatRoute from './routes/chat.js'
@@ -33,17 +33,16 @@ dotenv.config({
 const mongoURI = process.env.MONGO_URI
 const port = process.env.PORT || 3001
 const envMode = process.env.NODE_ENV || 'PRODUCTION'
-
-const adminSecretKey = process.env.ADMIN_SECRET_KEY || 'etwqeryrttgsadghvffvbcv'
+const adminSecretKey = process.env.ADMIN_SECRET_KEY || 'adsasdsdfsdfsdfd'
 const userSocketIDs = new Map()
-
 const onlineUsers = new Set()
+
 connectDB(mongoURI)
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDNARY_CLOUD_NAME,
-  api_key: process.env.CLOUDNARY_API_KEY,
-  api_secret: process.env.CLOUDNARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
 const app = express()
@@ -51,37 +50,20 @@ const server = createServer(app)
 const io = new Server(server, {
   cors: corsOptions,
 })
+
 app.set('io', io)
 
-// Middleware to set CORS headers
-app.use((req, res, next) => {
-  res.header(
-    'Access-Control-Allow-Origin',
-    'https://chattu-frontend-ten.vercel.app'
-  ) // You can specify your allowed origin instead of *
-  res.header(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, OPTIONS',
-    'HEAD'
-  )
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  )
-  next()
-})
-
-// Using other middleware
+// Using Middlewares Here
 app.use(express.json())
-app.use(cors(corsOptions))
 app.use(cookieParser())
+app.use(cors(corsOptions))
 
 app.use('/api/v1/user', userRoute)
 app.use('/api/v1/chat', chatRoute)
 app.use('/api/v1/admin', adminRoute)
 
-app.use('/', (req, res) => {
-  res.send('hello world')
+app.get('/', (req, res) => {
+  res.send('Hello World')
 })
 
 io.use((socket, next) => {
@@ -140,12 +122,14 @@ io.on('connection', (socket) => {
 
   socket.on(CHAT_JOINED, ({ userId, members }) => {
     onlineUsers.add(userId.toString())
+
     const membersSocket = getSockets(members)
     io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers))
   })
 
   socket.on(CHAT_LEAVED, ({ userId, members }) => {
     onlineUsers.delete(userId.toString())
+
     const membersSocket = getSockets(members)
     io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers))
   })
@@ -158,8 +142,9 @@ io.on('connection', (socket) => {
 })
 
 app.use(errorMiddleware)
+
 server.listen(port, () => {
-  console.log(`Server is running on port ${port} in ${envMode} mode`)
+  console.log(`Server is running on port ${port} in ${envMode} Mode`)
 })
 
 export { envMode, adminSecretKey, userSocketIDs }
